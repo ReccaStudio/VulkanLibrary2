@@ -1,0 +1,6 @@
+[submodule "VulkanExamples/external/glm"]
+	path = VulkanExamples/external/glm
+	url = git@github.com:ReccaStudio/glm.git
+[submodule "VulkanExamples/assets"]
+	path = VulkanExamples/assets
+	url = git@github.com:ReccaStudio/Vulkan-Assets.git
