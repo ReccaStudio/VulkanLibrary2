@@ -140,11 +140,46 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="benchmark.hpp" />
+    <ClInclude Include="camera.hpp" />
+    <ClInclude Include="CommandLineParser.hpp" />
+    <ClInclude Include="frustum.hpp" />
+    <ClInclude Include="keycodes.hpp" />
+    <ClInclude Include="ThreadPool.hpp" />
+    <ClInclude Include="VulkanAndroid.h" />
+    <ClInclude Include="VulkanBuffer.h" />
+    <ClInclude Include="VulkanDebug.h" />
+    <ClInclude Include="VulkanDevice.h" />
+    <ClInclude Include="VulkanExampleBase.h" />
+    <ClInclude Include="VulkanFrameBuffer.hpp" />
+    <ClInclude Include="VulkanglTFModel.h" />
     <ClInclude Include="VulkanInitializers.hpp" />
+    <ClInclude Include="VulkanSwapChain.h" />
+    <ClInclude Include="VulkanTexture.h" />
     <ClInclude Include="VulkanTools.h" />
+    <ClInclude Include="VulkanUIOverlay.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\external\imgui\imgui.cpp" />
+    <ClCompile Include="..\external\imgui\imgui_demo.cpp" />
+    <ClCompile Include="..\external\imgui\imgui_draw.cpp" />
+    <ClCompile Include="..\external\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="..\external\ktx\lib\checkheader.c" />
+    <ClCompile Include="..\external\ktx\lib\filestream.c" />
+    <ClCompile Include="..\external\ktx\lib\hashlist.c" />
+    <ClCompile Include="..\external\ktx\lib\memstream.c" />
+    <ClCompile Include="..\external\ktx\lib\swap.c" />
+    <ClCompile Include="..\external\ktx\lib\texture.c" />
+    <ClCompile Include="VulkanAndroid.cpp" />
+    <ClCompile Include="VulkanBuffer.cpp" />
+    <ClCompile Include="VulkanDebug.cpp" />
+    <ClCompile Include="VulkanDevice.cpp" />
+    <ClCompile Include="VulkanExampleBase.cpp" />
+    <ClCompile Include="VulkanglTFModel.cpp" />
+    <ClCompile Include="VulkanSwapChain.cpp" />
+    <ClCompile Include="VulkanTexture.cpp" />
     <ClCompile Include="VulkanTools.cpp" />
+    <ClCompile Include="VulkanUIOverlay.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

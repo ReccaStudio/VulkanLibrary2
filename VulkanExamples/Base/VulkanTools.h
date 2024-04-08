@@ -1,10 +1,10 @@
 /*
-* Assorted Vulkan helper functions
-*
-* Copyright (C) 2016 by Sascha Willems - www.saschawillems.de
-*
-* This code is licensed under the MIT license (MIT) (http://opensource.org/licenses/MIT)
-*/
+ * Assorted Vulkan helper functions
+ *
+ * Copyright (C) 2016-2023 by Sascha Willems - www.saschawillems.de
+ *
+ * This code is licensed under the MIT license (MIT) (http://opensource.org/licenses/MIT)
+ */
 
 #pragma once
 
@@ -61,6 +61,7 @@
 #endif
 
 const std::string getAssetPath();
+const std::string getShaderBasePath();
 
 namespace vks
 {
@@ -78,6 +79,8 @@ namespace vks
 		// Selected a suitable supported depth format starting with 32 bit down to 16 bit
 		// Returns false if none of the depth formats in the list is supported by the device
 		VkBool32 getSupportedDepthFormat(VkPhysicalDevice physicalDevice, VkFormat *depthFormat);
+		// Same as getSupportedDepthFormat but will only select formats that also have stencil
+		VkBool32 getSupportedDepthStencilFormat(VkPhysicalDevice physicalDevice, VkFormat* depthStencilFormat);
 
 		// Returns tru a given format support LINEAR filtering
 		VkBool32 formatIsFilterable(VkPhysicalDevice physicalDevice, VkFormat format, VkImageTiling tiling);
@@ -130,5 +133,6 @@ namespace vks
 		bool fileExists(const std::string &filename);
 
 		uint32_t alignedSize(uint32_t value, uint32_t alignment);
+		VkDeviceSize alignedVkSize(VkDeviceSize value, VkDeviceSize alignment);
 	}
 }

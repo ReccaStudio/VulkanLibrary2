@@ -1,23 +1,40 @@
 /*
-* Assorted commonly used Vulkan helper functions
-*
-* Copyright (C) 2016 by Sascha Willems - www.saschawillems.de
-*
-* This code is licensed under the MIT license (MIT) (http://opensource.org/licenses/MIT)
-*/
+ * Assorted commonly used Vulkan helper functions
+ *
+ * Copyright (C) 2016-2023 by Sascha Willems - www.saschawillems.de
+ *
+ * This code is licensed under the MIT license (MIT) (http://opensource.org/licenses/MIT)
+ */
 
 #include "VulkanTools.h"
 
+#if !(defined(VK_USE_PLATFORM_IOS_MVK) || defined(VK_USE_PLATFORM_MACOS_MVK))
+// iOS & macOS: VulkanExampleBase::getAssetPath() implemented externally to allow access to Objective-C components
 const std::string getAssetPath()
 {
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
 	return "";
-#elif defined(VK_EXAMPLE_DATA_DIR)
-	return VK_EXAMPLE_DATA_DIR;
+#elif defined(VK_EXAMPLE_ASSETS_DIR)
+	return VK_EXAMPLE_ASSETS_DIR;
 #else
-	return "./../data/";
+	return "./../assets/";
 #endif
 }
+#endif
+
+#if !(defined(VK_USE_PLATFORM_IOS_MVK) || defined(VK_USE_PLATFORM_MACOS_MVK))
+// iOS & macOS: VulkanExampleBase::getAssetPath() implemented externally to allow access to Objective-C components
+const std::string getShaderBasePath()
+{
+#if defined(VK_USE_PLATFORM_ANDROID_KHR)
+	return "shaders/";
+#elif defined(VK_EXAMPLE_SHADERS_DIR)
+	return VK_EXAMPLE_SHADERS_DIR;
+#else
+	return "./../shaders/";
+#endif
+}
+#endif
 
 namespace vks
 {
@@ -53,6 +70,7 @@ namespace vks
 				STR(ERROR_INCOMPATIBLE_DISPLAY_KHR);
 				STR(ERROR_VALIDATION_FAILED_EXT);
 				STR(ERROR_INVALID_SHADER_NV);
+				STR(ERROR_INCOMPATIBLE_SHADER_BINARY_EXT);
 #undef STR
 			default:
 				return "UNKNOWN_ERROR";
@@ -78,7 +96,7 @@ namespace vks
 		{
 			// Since all depth formats may be optional, we need to find a suitable depth format to use
 			// Start with the highest precision packed format
-			std::vector<VkFormat> depthFormats = {
+			std::vector<VkFormat> formatList = {
 				VK_FORMAT_D32_SFLOAT_S8_UINT,
 				VK_FORMAT_D32_SFLOAT,
 				VK_FORMAT_D24_UNORM_S8_UINT,
@@ -86,11 +104,10 @@ namespace vks
 				VK_FORMAT_D16_UNORM
 			};
 
-			for (auto& format : depthFormats)
+			for (auto& format : formatList)
 			{
 				VkFormatProperties formatProps;
 				vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &formatProps);
-				// Format must support depth stencil attachment for optimal tiling
 				if (formatProps.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT)
 				{
 					*depthFormat = format;
@@ -100,6 +117,29 @@ namespace vks
 
 			return false;
 		}
+
+		VkBool32 getSupportedDepthStencilFormat(VkPhysicalDevice physicalDevice, VkFormat* depthStencilFormat)
+		{
+			std::vector<VkFormat> formatList = {
+				VK_FORMAT_D32_SFLOAT_S8_UINT,
+				VK_FORMAT_D24_UNORM_S8_UINT,
+				VK_FORMAT_D16_UNORM_S8_UINT,
+			};
+
+			for (auto& format : formatList)
+			{
+				VkFormatProperties formatProps;
+				vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &formatProps);
+				if (formatProps.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT)
+				{
+					*depthStencilFormat = format;
+					return true;
+				}
+			}
+
+			return false;
+		}
+
 
 		VkBool32 formatHasStencil(VkFormat format)
 		{
@@ -394,7 +434,18 @@ namespace vks
 		uint32_t alignedSize(uint32_t value, uint32_t alignment)
         {
 	        return (value + alignment - 1) & ~(alignment - 1);
-        }
+		}
+
+		size_t alignedSize(size_t value, size_t alignment)
+		{
+			return (value + alignment - 1) & ~(alignment - 1);
+		}
+
+
+		VkDeviceSize alignedVkSize(VkDeviceSize value, VkDeviceSize alignment)
+		{
+			return (value + alignment - 1) & ~(alignment - 1);
+		}
 
 	}
 }
