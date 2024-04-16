@@ -81,7 +81,6 @@ private:
 	uint32_t destWidth;
 	uint32_t destHeight;
 	bool resizing = false;
-
 	void handleMouseMove(int32_t x, int32_t y);
 	void nextFrame();
 	void updateOverlay();
@@ -94,7 +93,7 @@ private:
 	void destroyCommandBuffers();
 	std::string shaderDir = "glsl";
 protected:
-	// Returns the path to the root of the glsl or hlsl shader directory
+	// Returns the path to the root of the glsl or hlsl shader directory.
 	std::string getShadersPath() const;
 
 	// Frame counter to display fps
@@ -107,13 +106,14 @@ protected:
 	// Physical device (GPU) that Vulkan will use
 	VkPhysicalDevice physicalDevice{ VK_NULL_HANDLE };
 	// Stores physical device properties (for e.g. checking device limits)
-	VkPhysicalDeviceProperties deviceProperties;
-	// Stores all features available on the selected physical device (for e.g checking if a feature is available)
-	VkPhysicalDeviceFeatures deviceFeatures;
+	VkPhysicalDeviceProperties deviceProperties{};
+	// Stores the features available on the selected physical device (for e.g checking if a feature is available)
+	VkPhysicalDeviceFeatures deviceFeatures{};
 	//Stores all available memory(type) properties for the physical device
-	VkPhysicalDeviceMemoryProperties deviceMemoryProperties;
-	// Set of physical device features to be enabled for this example (must be set in the derived constructor)
+	VkPhysicalDeviceMemoryProperties deviceMemoryProperties{};
+    /** @brief Set of physical device features to be enabled for this example (must be set in the derived constructor) */
 	VkPhysicalDeviceFeatures curEnabledDeviceFeatures{};
+    /** @brief Set of device extensions to be enabled for this example (must be set in the derived constructor) */
 	std::vector<const char*> enabledDeviceExtensions;
 	std::vector<const char*> enabledInstanceExtensions;
 /** @brief Optional pNext structure for passing extension structures to device creation */
@@ -121,7 +121,7 @@ protected:
 /** @brief Logical device, application's view of the physical device (GPU) */
 	VkDevice device{ VK_NULL_HANDLE };
 	// Handle to the device graphics queue that command buffers are submitted to
-	VkQueue queue{ VK_NULL_HANDLE };
+	VkQueue graphicQueue{ VK_NULL_HANDLE };
 	// Depth buffer format (selected during Vulkan initialization)
 	VkFormat depthFormat;
 	// Command buffer pool
@@ -132,15 +132,14 @@ protected:
 	VkSubmitInfo submitInfo;
 	// Command buffers used for rendering
 	std::vector<VkCommandBuffer> drawCmdBuffers;
-
-	//Global render pass for frame buffer writes
-	VkRenderPass renderPass = VK_NULL_HANDLE;
+	// Global render pass for frame buffer writes
+	VkRenderPass renderPass{ VK_NULL_HANDLE };
 	// List of available frame buffers (same as number of swap chain images)
-	std::vector<VkFramebuffer> frameBuffers;
-	//Active frame buffer index
+	std::vector<VkFramebuffer>frameBuffers;
+	// Active frame buffer index
 	uint32_t currentCmdBufferIndex = 0;
-	//Descriptor set pool
-	VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
+	// Descriptor set pool
+	VkDescriptorPool descriptorPool{ VK_NULL_HANDLE };
 	// List of shader modules created (stored for cleanup)
 	std::vector<VkShaderModule> shaderModules;
 	// Pipeline cache object
@@ -148,7 +147,7 @@ protected:
 	// Wraps the swap chain to present images (framebuffers) to the windowing system
 	VulkanSwapChain swapChain;
 
-	//Synchronization semaphore
+	//Synchronization semaphores
 	struct  
 	{
 		VkSemaphore presentComplete;
@@ -209,7 +208,8 @@ public:
 
 	static std::vector<const char*> args;
 
-	//Defines a frame rate independent timer value clamped from -1.0..1.0 for use in animations, rotations, etc.
+	// Defines a frame rate independent timer value clamped from -1.0...1.0
+	// For use in animations, rotations, etc.
 	float timer = 0.0f;
 	// Multiplier for speeding up (or slowing down) the global timer
 	float timerSpeed = 0.25f;
@@ -224,7 +224,7 @@ public:
 	/** @brief Default depth stencil attachment used by the default render pass */
 	struct {
 		VkImage image;
-		VkDeviceMemory mem;
+		VkDeviceMemory deviceMemory;
 		VkImageView view;
 	} depthStencil{};
 
@@ -373,9 +373,9 @@ public:
 	virtual void mouseMoved(double x, double y, bool &handled);
 	/** @brief (Virtual) Called when the window has been resized, can be used by the sample application to recreate resources */
 	virtual void windowResized();
-
-	virtual void buildCommandBuffersForPreRenderPrmitives();
-
+	/** @brief (Virtual) Called when resources have been recreated that require a rebuild of the command buffers (e.g. frame buffer), to be implemented by the sample application */
+	virtual void buildCommandBuffersForMainRendering();
+	/** @brief (Virtual) Setup default depth and stencil views */
 	virtual void setupDepthStencil();
 	/** @brief (Virtual) Setup default framebuffers for all requested swapchain images */
 	virtual void setupFrameBuffer();
@@ -386,6 +386,7 @@ public:
 	/** @brief (Virtual) Called after the physical device extensions have been read, can be used to enable extensions based on the supported extension listing*/
 	virtual void getEnabledExtensions();
 
+	/** @brief Prepares all Vulkan resources and functions required to run the sample */
 	virtual void prepareForRendering();
 
 	/** @brief Loads a SPIR-V shader file for the given shader stage */
@@ -393,6 +394,7 @@ public:
 
 	void resizeWindow();
 
+	/** @brief Entry point for the main render loop */
 	void renderLoop();
 
 	/** @brief Adds the drawing commands for the ImGui overlay to the given command buffer */
@@ -554,9 +556,9 @@ int main(const int argc, const char *argv[])										\
 {															\
 	for (int i = 0; i < argc; i++) { VulkanExample::args.push_back(argv[i]); };					\
 	vulkanExample = new VulkanExample();										\
-	vulkanExample->initVulkan();											\
+	vulkanExample->initVulkanSetting();											\
 	vulkanExample->setupWindow();											\
-	vulkanExample->prepare();											\
+	vulkanExample->prepareForRendering();											\
 	vulkanExample->renderLoop();											\
 	delete(vulkanExample);												\
 	return 0;													\

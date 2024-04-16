@@ -111,8 +111,8 @@ void VulkanSwapChain::initSurface(screen_context_t screen_context, screen_window
 	// Iterate over each queue to learn whether it supports presenting:
 	// Find a queue with present support
 	// Will be used to present the swap chain images to the windowing system
-	std::vector<VkBool32>supportsPresent(queueCount);
-	for (uint32_t i = 0;i<queueCount;++i)
+	std::vector<VkBool32> supportsPresent(queueCount);
+	for (uint32_t i = 0; i < queueCount; i++) 
 	{
 		vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i, surface, &supportsPresent[i]);
 	}
@@ -141,9 +141,9 @@ void VulkanSwapChain::initSurface(screen_context_t screen_context, screen_window
 
 	if (presentQueueNodeIndex == UINT32_MAX)
 	{
-		// if there's no queue that supports both present and graphics
+		// If there's no queue that supports both present and graphics
 		// try to find a separate present queue
-		for (uint32_t i = 0;i<queueCount;++i)
+		for (uint32_t i = 0; i < queueCount; ++i) 
 		{
 			if (supportsPresent[i] == VK_TRUE)
 			{
@@ -154,7 +154,7 @@ void VulkanSwapChain::initSurface(screen_context_t screen_context, screen_window
 	}//if
 
 	// Exit if either a graphics or a presenting queue hasn't been found
-	if (graphicsQueueNodeIndex == UINT32_MAX  || presentQueueNodeIndex == UINT32_MAX)
+	if (graphicsQueueNodeIndex == UINT32_MAX || presentQueueNodeIndex == UINT32_MAX)
 	{
 		vks::tools::exitFatal("Could not find a graphics and/or presenting queue!", -1);
 	}
@@ -284,7 +284,6 @@ void VulkanSwapChain::create(uint32_t *width, uint32_t *height, bool vsync, bool
 			{
 				swapchainPresentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
 			}
-
 		}//for
 	}
 
@@ -483,7 +482,6 @@ void VulkanSwapChain::cleanup()
 
 	surface = VK_NULL_HANDLE;
 	swapChain = VK_NULL_HANDLE;
-
 }
 
 #if defined(_DIRECT2DISPLAY)

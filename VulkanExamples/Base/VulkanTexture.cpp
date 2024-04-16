@@ -46,8 +46,9 @@ namespace vks
 		result = ktxTexture_CreateFromMemory(textureData, size, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, target);
 		delete[] textureData;
 #else
-		if (!vks::tools::fileExists(fileName)) {
-			vks::tools::exitFatal("Could not load texture from " + fileName + "\n\nThe file may be part of the additional asset pack.\n\nRun \"download_assets.py\" in the repository root to download the latest version.", -1);
+		if (!vks::tools::fileExists(fileName))
+        {
+			vks::tools::exitFatal("Could not load texture from " + fileName + "\n\nMake sure the assets submodule has been checked out and is up-to-date.", -1);
 		}
 		result = ktxTexture_CreateFromNamedFile(fileName.c_str(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, target);
 #endif		
@@ -57,7 +58,7 @@ namespace vks
 	/**
 	* Load a 2D texture including all mip levels
 	*
-	* @param filename File to load (supports .ktx)
+	* @param fileName File to load (supports .ktx)
 	* @param format Vulkan format of the image data stored in the file
 	* @param device Vulkan device to create the texture on
 	* @param copyQueue Queue used for the texture staging copy commands (must support transfer)
@@ -131,7 +132,7 @@ namespace vks
 			// Setup buffer copy regions for each mip level
 			std::vector<VkBufferImageCopy> bufferCopyRegions;
 
-			for (uint32_t i = 0;i<mipLevels;++i)
+			for (uint32_t i = 0; i < mipLevels; i++)
 			{
 				ktx_size_t offset;
 
@@ -182,7 +183,7 @@ namespace vks
 			subresourceRange.levelCount = mipLevels;
 			subresourceRange.layerCount = 1;
 
-			// Image barrier for optimal image(target)
+			// Image barrier for optimal image (target)
 			// Optimal image will be used as destination for the copy
 			vks::tools::setImageLayout(copyCmd, image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, subresourceRange);
 
@@ -238,9 +239,10 @@ namespace vks
 			memAllocInfo.memoryTypeIndex = device->GetMemoryType(memReqs.memoryTypeBits,
 				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-			//Allocate host memory for image
+			// Allocate host memory
 			VK_CHECK_RESULT(vkAllocateMemory(device->logicalDevice, &memAllocInfo, nullptr, &mappableMemory));
-			//Bind allocated image for use
+
+			// Bind allocated image for use
 			VK_CHECK_RESULT(vkBindImageMemory(device->logicalDevice, mappableImage, mappableMemory, 0));
 
 			// Get sub resource layout
@@ -252,7 +254,8 @@ namespace vks
 			VkSubresourceLayout subResLayout;
 			void* data;
 
-			//Get sub resources layout includes row pitch,size offsets,etc
+			// Get sub resources layout 
+			// Includes row pitch, size offsets, etc.
 			vkGetImageSubresourceLayout(device->logicalDevice, mappableImage, &subRes, &subResLayout);
 
 			// Map image memory
@@ -313,7 +316,6 @@ namespace vks
 
 		// Update descriptor image info member that can be used for setting up descriptor sets
 		updateDescriptor();
-
 	}	//Texture2D::loadFromFile
 
 	/**
@@ -395,8 +397,8 @@ namespace vks
 		imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		imageCreateInfo.extent = { width,height,1 };
 		imageCreateInfo.usage = imageUsageFlags;
-		//Ensure that the TRANSFER_DST bit is set for staging
-		if ( !(imageCreateInfo.usage & VK_IMAGE_USAGE_TRANSFER_DST_BIT) )
+		// Ensure that the TRANSFER_DST bit is set for staging
+		if (!(imageCreateInfo.usage & VK_IMAGE_USAGE_TRANSFER_DST_BIT))
 		{
 			imageCreateInfo.usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 		}
@@ -468,7 +470,7 @@ namespace vks
 	/**
 	* Load a 2D texture array including all mip levels
 	*
-	* @param filename File to load (supports .ktx)
+	* @param fileName File to load (supports .ktx)
 	* @param format Vulkan format of the image data stored in the file
 	* @param device Vulkan device to create the texture on
 	* @param copyQueue Queue used for the texture staging copy commands (must support transfer)
@@ -638,7 +640,7 @@ namespace vks
 	/**
 	* Load a cubemap texture including all mip levels from a single file
 	*
-	* @param filename File to load (supports .ktx)
+	* @param fileName File to load (supports .ktx)
 	* @param format Vulkan format of the image data stored in the file
 	* @param device Vulkan device to create the texture on
 	* @param copyQueue Queue used for the texture staging copy commands (must support transfer)
@@ -658,7 +660,7 @@ namespace vks
 		mipLevels = pKtxTexture->numLevels;
 
 		ktx_uint8_t * pKtxTextureData = ktxTexture_GetData(pKtxTexture);
-		ktx_size_t ktxTexureSize = ktxTexture_GetSize(pKtxTexture);
+		ktx_size_t ktxTextureSize = ktxTexture_GetSize(pKtxTexture);
 
 		VkMemoryAllocateInfo memAllocateInfo = vks::initializers::GenMemoryAllocateInfo();
 		VkMemoryRequirements memReqs;
@@ -667,7 +669,7 @@ namespace vks
 		VkBuffer stagingBuffer;
 		VkDeviceMemory stagingMemory;
 		VkBufferCreateInfo bufferCreateInfo = vks::initializers::GenBufferCreateInfo();
-		bufferCreateInfo.size = ktxTexureSize;
+		bufferCreateInfo.size = ktxTextureSize;
 		// This buffer is used as a transfer source for the buffer copy
 		bufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 		bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
@@ -686,7 +688,7 @@ namespace vks
 		// Copy texture data into staging buffer
 		uint8_t *data;
 		VK_CHECK_RESULT(vkMapMemory(device->logicalDevice, stagingMemory, 0, memReqs.size, 0, (void **)&data));
-		memcpy(data, pKtxTextureData, ktxTexureSize);
+		memcpy(data, pKtxTextureData, ktxTextureSize);
 		vkUnmapMemory(device->logicalDevice, stagingMemory);
 
 		// Setup buffer copy regions for each face including all of its mip levels.

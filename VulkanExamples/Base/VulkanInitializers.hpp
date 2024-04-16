@@ -229,31 +229,30 @@ namespace vks
 
 		inline VkDescriptorSetLayoutBinding GenDescriptorSetLayoutBinding(VkDescriptorType type, VkShaderStageFlags stageFlags, uint32_t binding, uint32_t descriptorCount = 1)
 		{
-			VkDescriptorSetLayoutBinding descriptorSetLayoutBinding{};
-			descriptorSetLayoutBinding.descriptorType = type;
-			descriptorSetLayoutBinding.stageFlags = stageFlags;
-			descriptorSetLayoutBinding.binding = binding;
-			descriptorSetLayoutBinding.descriptorCount = descriptorCount;
-
-			return descriptorSetLayoutBinding;
+			VkDescriptorSetLayoutBinding setLayoutBinding {};
+			setLayoutBinding.descriptorType = type;
+			setLayoutBinding.stageFlags = stageFlags;
+			setLayoutBinding.binding = binding;
+			setLayoutBinding.descriptorCount = descriptorCount;
+			return setLayoutBinding;
 		}
 
-		inline VkDescriptorSetLayoutCreateInfo GenDescriptorSetLayoutCreateInfo(const VkDescriptorSetLayoutBinding* pBindings, uint32_t bindingcount)
+		inline VkDescriptorSetLayoutCreateInfo GenDescriptorSetLayoutCreateInfo(const VkDescriptorSetLayoutBinding* pBindings, uint32_t bindingCount)
 		{
 			VkDescriptorSetLayoutCreateInfo  descriptorSetLayoutCreateInfo{};
 			descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 			descriptorSetLayoutCreateInfo.pBindings = pBindings;
-			descriptorSetLayoutCreateInfo.bindingCount = bindingcount;
+			descriptorSetLayoutCreateInfo.bindingCount = bindingCount;
 			return descriptorSetLayoutCreateInfo;
 		}
 
-		inline VkDescriptorSetLayoutCreateInfo GenDescriptorSetLayoutCreateInfo(const std::vector<VkDescriptorSetLayoutBinding>& bingdings)
+		inline VkDescriptorSetLayoutCreateInfo GenDescriptorSetLayoutCreateInfo(const std::vector<VkDescriptorSetLayoutBinding>& bindings)
 		{
-			VkDescriptorSetLayoutCreateInfo descritorSetLayoutCreateInfo{};
-			descritorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-			descritorSetLayoutCreateInfo.pBindings = bingdings.data();
-			descritorSetLayoutCreateInfo.bindingCount = static_cast<uint32_t>(bingdings.size());
-			return descritorSetLayoutCreateInfo;
+			VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{};
+			descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+			descriptorSetLayoutCreateInfo.pBindings = bindings.data();
+			descriptorSetLayoutCreateInfo.bindingCount = static_cast<uint32_t>(bindings.size());
+			return descriptorSetLayoutCreateInfo;
 		}
 
 		inline VkPipelineLayoutCreateInfo GenPipelineLayoutCreateInfo(const VkDescriptorSetLayout* pSetLayouts, uint32_t setLayoutCount = 1)
@@ -294,14 +293,14 @@ namespace vks
 
 		inline VkWriteDescriptorSet GenWriteDescriptorSet(VkDescriptorSet dstSet, VkDescriptorType type, uint32_t binding, VkDescriptorBufferInfo* bufferInfo, uint32_t descriptorCount = 1)
 		{
-			VkWriteDescriptorSet writeDescriptor{};
-			writeDescriptor.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			writeDescriptor.dstSet = dstSet;
-			writeDescriptor.descriptorType = type;
-			writeDescriptor.dstBinding = binding;
-			writeDescriptor.pBufferInfo = bufferInfo;
-			writeDescriptor.descriptorCount = descriptorCount;
-			return writeDescriptor;
+			VkWriteDescriptorSet writeDescriptorSet {};
+			writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			writeDescriptorSet.dstSet = dstSet;
+			writeDescriptorSet.descriptorType = type;
+			writeDescriptorSet.dstBinding = binding;
+			writeDescriptorSet.pBufferInfo = bufferInfo;
+			writeDescriptorSet.descriptorCount = descriptorCount;
+			return writeDescriptorSet;
 		}
 
 		inline VkWriteDescriptorSet GenWriteDescriptorSet(VkDescriptorSet dstSet, VkDescriptorType type, uint32_t binding, VkDescriptorImageInfo* imageInfo, uint32_t descriptorCount = 1)
@@ -327,13 +326,12 @@ namespace vks
 
 		inline VkVertexInputAttributeDescription GenVertexInputAttributeDescription(uint32_t binding, uint32_t location, VkFormat format, uint32_t offset)
 		{
-			VkVertexInputAttributeDescription  vertexInputAttributeDescription{};
-			vertexInputAttributeDescription.location = location;
-			vertexInputAttributeDescription.binding = binding;
-			vertexInputAttributeDescription.format = format;
-			vertexInputAttributeDescription.offset = offset;
-
-			return vertexInputAttributeDescription;
+			VkVertexInputAttributeDescription vInputAttribDescription {};
+			vInputAttribDescription.location = location;
+			vInputAttribDescription.binding = binding;
+			vInputAttribDescription.format = format;
+			vInputAttribDescription.offset = offset;
+			return vInputAttribDescription;
 		}
 
 		inline VkPipelineVertexInputStateCreateInfo GenPipelineVertexInputStateCreateInfo()
@@ -343,15 +341,14 @@ namespace vks
 			return pipelineVertexInputStateCreateInfo;
 		}
 
-		inline VkPipelineVertexInputStateCreateInfo GenPipelineVertexInputStateCreateInfo(const std::vector<VkVertexInputBindingDescription> &vertexBindingDescriptions, const std::vector<VkVertexInputAttributeDescription> &vertexAttributeDescriptoons)
+		inline VkPipelineVertexInputStateCreateInfo GenPipelineVertexInputStateCreateInfo(const std::vector<VkVertexInputBindingDescription> &vertexBindingDescriptions, const std::vector<VkVertexInputAttributeDescription> &vertexAttributeDescriptions)
 		{
 			VkPipelineVertexInputStateCreateInfo pipelineVertexInputStateCreateInfo{};
 			pipelineVertexInputStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 			pipelineVertexInputStateCreateInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(vertexBindingDescriptions.size());
 			pipelineVertexInputStateCreateInfo.pVertexBindingDescriptions = vertexBindingDescriptions.data();
-			pipelineVertexInputStateCreateInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(vertexAttributeDescriptoons.size());
-			pipelineVertexInputStateCreateInfo.pVertexAttributeDescriptions = vertexAttributeDescriptoons.data();
-
+			pipelineVertexInputStateCreateInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(vertexAttributeDescriptions.size());
+			pipelineVertexInputStateCreateInfo.pVertexAttributeDescriptions = vertexAttributeDescriptions.data();
 			return pipelineVertexInputStateCreateInfo;
 		}
 
@@ -492,17 +489,17 @@ namespace vks
 			return pushConstantRange;
 		}
 
-		inline VkBindSparseInfo GenBindSpareseInfo()
+		inline VkBindSparseInfo GenBindSparseInfo()
 		{
 			VkBindSparseInfo bindSparseInfo{};
 			bindSparseInfo.sType = VK_STRUCTURE_TYPE_BIND_SPARSE_INFO;
 			return bindSparseInfo;
 		}
 
-		inline VkSpecializationMapEntry GenSpecializationMapEntry(uint32_t consttantID, uint32_t offset, size_t size)
+		inline VkSpecializationMapEntry GenSpecializationMapEntry(uint32_t constantID, uint32_t offset, size_t size)
 		{
 			VkSpecializationMapEntry specializationMapEntry{};
-			specializationMapEntry.constantID = consttantID;
+			specializationMapEntry.constantID = constantID;
 			specializationMapEntry.offset = offset;
 			specializationMapEntry.size = size;
 			return specializationMapEntry;
@@ -528,7 +525,7 @@ namespace vks
 			return specializationInfo;
 		}
 
-		inline VkAccelerationStructureGeometryKHR GenAccelerationStructureGeomotryKHR()
+		inline VkAccelerationStructureGeometryKHR GenAccelerationStructureGeometryKHR()
 		{
 			VkAccelerationStructureGeometryKHR accelerationStructureGeometryKHR{};
 			accelerationStructureGeometryKHR.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR;
@@ -542,7 +539,7 @@ namespace vks
 			return accelerationStructureBuildGeometryInfoKHR;
 		}
 
-		inline VkAccelerationStructureBuildSizesInfoKHR GenAccelerationStrucutureBuildSizeInfoKHR()
+		inline VkAccelerationStructureBuildSizesInfoKHR GenAccelerationStructureBuildSizesInfoKHR()
 		{
 			VkAccelerationStructureBuildSizesInfoKHR accelerationStructureBuildSizesInfoKHR{};
 			accelerationStructureBuildSizesInfoKHR.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR;

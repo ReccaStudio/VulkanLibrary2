@@ -8,8 +8,8 @@
 
 #pragma once
 
-#include<fstream>
-#include<stdlib.h>
+#include <fstream>
+#include <stdlib.h>
 #include <string>
 #include <vector>
 
@@ -20,7 +20,6 @@
 
 #include "VulkanBuffer.h"
 #include "VulkanDevice.h"
-
 #include "VulkanTools.h"
 
 #if defined(__ANDROID__)
@@ -30,25 +29,24 @@
 namespace vks
 {
 	class Texture
-	{
+    {
 	public:
-		VulkanDevice* device;
-		VkImage image;
-		VkImageLayout imageLayout;
-		VkDeviceMemory deviceMemory;
-		VkImageView view;
-		uint32_t width, height;
-		uint32_t mipLevels;
-		uint32_t layerCount;
-		VkDescriptorImageInfo descriptorImageInfo;
-		VkSampler sampler;
+	vks::VulkanDevice *   device;
+	VkImage               image;
+	VkImageLayout         imageLayout;
+	VkDeviceMemory        deviceMemory;
+	VkImageView           view;
+	uint32_t              width, height;
+	uint32_t              mipLevels;
+	uint32_t              layerCount;
+	VkDescriptorImageInfo descriptorImageInfo;
+	VkSampler             sampler;
 
 		void updateDescriptor();
 
 		void destroy();
 
 		ktxResult loadKTXFile(std::string fileName, ktxTexture **target);
-
 	};
 
 	class Texture2D:public Texture
@@ -89,7 +87,5 @@ namespace vks
 	private:
 
 	};
-
-
 
 }//namespace vks
