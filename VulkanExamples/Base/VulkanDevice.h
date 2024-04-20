@@ -1,3 +1,13 @@
+/*
+ * Vulkan device class
+ *
+ * Encapsulates a physical Vulkan device and its logical representation
+ *
+ * Copyright (C) 2016-2023 by Sascha Willems - www.saschawillems.de
+ *
+ * This code is licensed under the MIT license (MIT) (http://opensource.org/licenses/MIT)
+ */
+
 #pragma once
 
 #include "VulkanBuffer.h"
@@ -11,17 +21,23 @@ namespace vks
 {
 	struct VulkanDevice
 	{
+		/** @brief Physical device representation */
 		VkPhysicalDevice physicalDevice;
+		/** @brief Logical device representation (application's view of the device) */
 		VkDevice logicalDevice;
+		/** @brief Properties of the physical device including limits that the application can check against */
 		VkPhysicalDeviceProperties properties;
+		/** @brief Features of the physical device that an application can use to check if a feature is supported */
 		VkPhysicalDeviceFeatures features;
 		VkPhysicalDeviceFeatures m_enabledDeviceFeatures;
 		VkPhysicalDeviceMemoryProperties memoryProperties;
+		/** @brief Queue family properties of the physical device */
 		std::vector<VkQueueFamilyProperties> queueFamilyProperties;
+		/** @brief List of extensions supported by the device */
 		std::vector<std::string> supportedExtensions;
+		/** @brief Default command pool for the graphics queue family index */
 		VkCommandPool commandPool = VK_NULL_HANDLE;
-		bool enableDebugMarkers = false;
-
+		/** @brief Contains queue family indices */
 		struct
 		{
 			uint32_t graphicIndex;
@@ -53,7 +69,7 @@ namespace vks
 
 		VkCommandPool CreateCommandPool(uint32_t queueFamilyIndex, VkCommandPoolCreateFlags createFlags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
 
-		VkCommandBuffer CreateCommandBuffer(VkCommandBufferLevel	level, VkCommandPool pool, bool begin = false);
+		VkCommandBuffer CreateCommandBuffer(VkCommandBufferLevel	level, VkCommandPool curCommandPool, bool begin = false);
 
 		VkCommandBuffer CreateCommandBuffer(VkCommandBufferLevel level, bool begin = false);
 

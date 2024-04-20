@@ -1,4 +1,3 @@
-
 /*
 * Vulkan glTF model and texture loading class based on tinyglTF (https://github.com/syoyo/tinygltf)
 *
@@ -32,10 +31,10 @@ bool loadImageDataFunc(tinygltf::Image* image,const int imageIndex,std::string* 
 	int req_width,int req_height,const unsigned char* bytes,int size,void* userData)
 {
 	// KTX files will be handled by our own code
-	if (image->uri.find_last_not_of(".")!=std::string::npos)
-	{
-		if (image->uri.substr(image->uri.find_last_of(".")+1)=="ktx")
-		{
+	if (image->uri.find_last_of(".") != std::string::npos)
+    {
+		if (image->uri.substr(image->uri.find_last_of(".") + 1) == "ktx")
+        {
 			return true;
 		}
 	}
@@ -76,7 +75,6 @@ void vkglTF::Texture::fromglTfImage(tinygltf::Image& gltfImage, std::string path
 	this->device = device;
 
 	bool isKtx = false;
-
 	// Image points to an external ktx file
 	if (gltfImage.uri.find_first_of(".")!=std::string::npos)
 	{
@@ -132,8 +130,8 @@ void vkglTF::Texture::fromglTfImage(tinygltf::Image& gltfImage, std::string path
 		mipLevels = static_cast<uint32_t>(floor(log2(std::max(width, height))) + 1.0);//jingz 为什么不用ceil
 
 		vkGetPhysicalDeviceFormatProperties(device->physicalDevice, format, &formatProperties);
-		assert(formatProperties.optimalTilingFeatures&VK_FORMAT_FEATURE_BLIT_SRC_BIT);
-		assert(formatProperties.optimalTilingFeatures&VK_FORMAT_FEATURE_BLIT_DST_BIT);
+		assert(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_SRC_BIT);
+		assert(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_DST_BIT);
 
 		VkMemoryAllocateInfo memAllocInfo{};
 		memAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -147,7 +145,7 @@ void vkglTF::Texture::fromglTfImage(tinygltf::Image& gltfImage, std::string path
 		bufferCreateInfo.size = bufferSize;
 		bufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 		bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		VK_CHECK_RESULT(vkCreateBuffer(device->logicalDevice,&bufferCreateInfo,nullptr,&stagingBuffer));
+		VK_CHECK_RESULT(vkCreateBuffer(device->logicalDevice, &bufferCreateInfo, nullptr, &stagingBuffer));
 
 		vkGetBufferMemoryRequirements(device->logicalDevice, stagingBuffer, &memReqs);
 		memAllocInfo.allocationSize = memReqs.size;
@@ -156,7 +154,7 @@ void vkglTF::Texture::fromglTfImage(tinygltf::Image& gltfImage, std::string path
 		VK_CHECK_RESULT(vkBindBufferMemory(device->logicalDevice, stagingBuffer, stagingMemory, 0));
 
 		uint8_t* data;
-		VK_CHECK_RESULT(vkMapMemory(device->logicalDevice,stagingMemory,0,memReqs.size,0,(void**)&data));
+		VK_CHECK_RESULT(vkMapMemory(device->logicalDevice, stagingMemory, 0, memReqs.size, 0, (void**)&data));
 		memcpy(data, buffer, bufferSize);
 		vkUnmapMemory(device->logicalDevice, stagingMemory);
 
@@ -171,7 +169,7 @@ void vkglTF::Texture::fromglTfImage(tinygltf::Image& gltfImage, std::string path
 		imageCreateInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT;
 		imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		imageCreateInfo.extent = { width,height,1 };
+		imageCreateInfo.extent = { width, height, 1 };
 		imageCreateInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 		VK_CHECK_RESULT(vkCreateImage(device->logicalDevice, &imageCreateInfo, nullptr, &image));
 		
@@ -290,6 +288,8 @@ void vkglTF::Texture::fromglTfImage(tinygltf::Image& gltfImage, std::string path
 		this->imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
 		subresourceRange.levelCount = mipLevels;
+        imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
 		{
 			VkImageMemoryBarrier imageMemoryBarrier{};
 			imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -312,128 +312,127 @@ void vkglTF::Texture::fromglTfImage(tinygltf::Image& gltfImage, std::string path
 	}// !isKtx
 	else
 	{
-	// Texture is stored in an external ktx file
-	std::string filename = path + "/" + gltfImage.uri;
+		// Texture is stored in an external ktx file
+		std::string fileName = path + "/" + gltfImage.uri;
 
-	ktxTexture* pKtxTexture;
+		ktxTexture* pKtxTexture;
 
-	ktxResult result = KTX_SUCCESS;
-
-#ifdef __ANDROID__
+		ktxResult result = KTX_SUCCESS;
+#if defined(__ANDROID__)
 		AAsset* asset = AAssetManager_open(androidApp->activity->assetManager, filename.c_str(), AASSET_MODE_STREAMING);
-		if (!asset) {
-			vks::tools::exitFatal("Could not load texture from " + filename + "\n\nMake sure the assets submodule has been checked out and is up-to-date.", -1);
+		if (!asset)
+		{
+			vks::tools::exitFatal("Could not load texture from " + fileName + "\n\nMake sure the assets submodule has been checked out and is up-to-date.", -1);
 		}
 		size_t size = AAsset_getLength(asset);
 		assert(size > 0);
 		ktx_uint8_t* textureData = new ktx_uint8_t[size];
 		AAsset_read(asset, textureData, size);
 		AAsset_close(asset);
-		result = ktxTexture_CreateFromMemory(textureData, size, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &ktxTexture);
+		result = ktxTexture_CreateFromMemory(textureData, size, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &pKtxTexture);
 		delete[] textureData;
 #else
-	if (!vks::tools::fileExists(filename))
-	{
-		vks::tools::exitFatal("Could not load texture from" + filename + "\n\nThe file may be part of the additional asset pack.\n\nRun \"Download_assets.py\" in the repository root to download the latest version", -1);
-	}
-	result = ktxTexture_CreateFromNamedFile(filename.c_str(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &pKtxTexture);
-#endif
-	assert(result == KTX_SUCCESS);
-
-	this->device = device;
-	this->width = pKtxTexture->baseWidth;
-	this->height = pKtxTexture->baseHeight;
-	mipLevels = pKtxTexture->numLevels;
-
-	ktx_uint8_t* pKtxTextureData = ktxTexture_GetData(pKtxTexture);
-	ktx_size_t ktxTextureSize = ktxTexture_GetSize(pKtxTexture);
-	// @todo: Use ktxTexture_GetVkFormat(ktxTexture)
-	format = VK_FORMAT_R8G8B8A8_UNORM;
-
-	// Get device properties for the requested texture format
-	VkFormatProperties formatProperties;
-	vkGetPhysicalDeviceFormatProperties(device->physicalDevice, format, &formatProperties);
-
-	VkCommandBuffer copyCmd = device->CreateCommandBuffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY, true);
-	VkBuffer stagingBuffer;
-	VkDeviceMemory stagingMemory;
-
-	VkBufferCreateInfo bufferCreateInfo = vks::initializers::GenBufferCreateInfo();
-	bufferCreateInfo.size = ktxTextureSize;
-	//This buffer is used as a transfer source for the buffer copy
-	bufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-	bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	VK_CHECK_RESULT(vkCreateBuffer(device->logicalDevice, &bufferCreateInfo, nullptr, &stagingBuffer));
-
-	VkMemoryAllocateInfo memAllocInfo = vks::initializers::GenMemoryAllocateInfo();
-	VkMemoryRequirements memReqs;
-	vkGetBufferMemoryRequirements(device->logicalDevice, stagingBuffer,&memReqs);
-	memAllocInfo.allocationSize = memReqs.size;
-	memAllocInfo.memoryTypeIndex = device->GetMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-	VK_CHECK_RESULT(vkAllocateMemory(device->logicalDevice, &memAllocInfo, nullptr, &stagingMemory));
-	VK_CHECK_RESULT(vkBindBufferMemory(device->logicalDevice, stagingBuffer, stagingMemory, 0));
-
-	uint8_t* data;
-	VK_CHECK_RESULT(vkMapMemory(device->logicalDevice, stagingMemory, 0, memReqs.size, 0,(void**)&data));
-	memcpy(data, pKtxTextureData, ktxTextureSize);
-	vkUnmapMemory(device->logicalDevice, stagingMemory);
-
-	std::vector<VkBufferImageCopy> bufferCopyRegions;
-	for (uint32_t i = 0;i<mipLevels;++i)
-	{
-		ktx_size_t offset;
-		KTX_error_code result = ktxTexture_GetImageOffset(pKtxTexture, i, 0, 0, &offset);
+		if (!vks::tools::fileExists(fileName))
+        {
+			vks::tools::exitFatal("Could not load texture from " + fileName + "\n\nMake sure the assets submodule has been checked out and is up-to-date.", -1);
+		}
+		result = ktxTexture_CreateFromNamedFile(fileName.c_str(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &pKtxTexture);
+#endif		
 		assert(result == KTX_SUCCESS);
-		VkBufferImageCopy bufferCopyRegion = {};
-		bufferCopyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		bufferCopyRegion.imageSubresource.mipLevel = i;
-		bufferCopyRegion.imageSubresource.baseArrayLayer = 0;
-		bufferCopyRegion.imageSubresource.layerCount = 1;
-		bufferCopyRegion.imageExtent.width = std::max(1u, pKtxTexture->baseWidth >> i);
-		bufferCopyRegion.imageExtent.height = std::max(1u, pKtxTexture->baseHeight >> i);
-		bufferCopyRegion.imageExtent.depth = 1;
-		bufferCopyRegion.bufferOffset = offset;
-		bufferCopyRegions.push_back(bufferCopyRegion);
-	}
 
-	// Create optimal tiled target image
-	VkImageCreateInfo imageCreateInfo = vks::initializers::GenImageCreateInfo();
-	imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-	imageCreateInfo.format = format;
-	imageCreateInfo.mipLevels = mipLevels;
-	imageCreateInfo.arrayLayers = 1;
-	imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-	imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-	imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	imageCreateInfo.extent = { width,height,1 };
-	imageCreateInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-	VK_CHECK_RESULT(vkCreateImage(device->logicalDevice, &imageCreateInfo, nullptr, &image));
+		this->device = device;
+		this->width = pKtxTexture->baseWidth;
+		this->height = pKtxTexture->baseHeight;
+		mipLevels = pKtxTexture->numLevels;
 
-	vkGetImageMemoryRequirements(device->logicalDevice, image, &memReqs);
-	memAllocInfo.allocationSize = memReqs.size;
-	memAllocInfo.memoryTypeIndex = device->GetMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-	VK_CHECK_RESULT(vkAllocateMemory(device->logicalDevice, &memAllocInfo, nullptr, &deviceMemory));
-	VK_CHECK_RESULT(vkBindImageMemory(device->logicalDevice, image, deviceMemory, 0));
+		ktx_uint8_t* pKtxTextureData = ktxTexture_GetData(pKtxTexture);
+		ktx_size_t ktxTextureSize = ktxTexture_GetSize(pKtxTexture);
+		// @todo: Use ktxTexture_GetVkFormat(pKtxTexture)
+		format = VK_FORMAT_R8G8B8A8_UNORM;
 
-	VkImageSubresourceRange subresourceRange = {};
-	subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	subresourceRange.baseMipLevel = 0;
-	subresourceRange.levelCount = mipLevels;
-	subresourceRange.layerCount = 1;
+		// Get device properties for the requested texture format
+		VkFormatProperties formatProperties;
+		vkGetPhysicalDeviceFormatProperties(device->physicalDevice, format, &formatProperties);
 
-	vks::tools::setImageLayout(copyCmd, image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, subresourceRange);
-	vkCmdCopyBufferToImage(copyCmd, stagingBuffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, static_cast<uint32_t>(bufferCopyRegions.size()), bufferCopyRegions.data());
-	vks::tools::setImageLayout(copyCmd, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, subresourceRange);
+		VkCommandBuffer copyCmd = device->CreateCommandBuffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY, true);
+		VkBuffer stagingBuffer;
+		VkDeviceMemory stagingMemory;
 
-	device->FlushCommandBuffer(copyCmd, copyQueue);
-	this->imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		VkBufferCreateInfo bufferCreateInfo = vks::initializers::GenBufferCreateInfo();
+		bufferCreateInfo.size = ktxTextureSize;
+		//This buffer is used as a transfer source for the buffer copy
+		bufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+		bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		VK_CHECK_RESULT(vkCreateBuffer(device->logicalDevice, &bufferCreateInfo, nullptr, &stagingBuffer));
 
-	vkFreeMemory(device->logicalDevice, stagingMemory, nullptr);
-	vkDestroyBuffer(device->logicalDevice, stagingBuffer, nullptr);
+		VkMemoryAllocateInfo memAllocInfo = vks::initializers::GenMemoryAllocateInfo();
+		VkMemoryRequirements memReqs;
+		vkGetBufferMemoryRequirements(device->logicalDevice, stagingBuffer,&memReqs);
+		memAllocInfo.allocationSize = memReqs.size;
+		memAllocInfo.memoryTypeIndex = device->GetMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+		VK_CHECK_RESULT(vkAllocateMemory(device->logicalDevice, &memAllocInfo, nullptr, &stagingMemory));
+		VK_CHECK_RESULT(vkBindBufferMemory(device->logicalDevice, stagingBuffer, stagingMemory, 0));
 
-	ktxTexture_Destroy(pKtxTexture);
+		uint8_t* data;
+		VK_CHECK_RESULT(vkMapMemory(device->logicalDevice, stagingMemory, 0, memReqs.size, 0,(void**)&data));
+		memcpy(data, pKtxTextureData, ktxTextureSize);
+		vkUnmapMemory(device->logicalDevice, stagingMemory);
 
+		std::vector<VkBufferImageCopy> bufferCopyRegions;
+		for (uint32_t i = 0;i<mipLevels;++i)
+		{
+			ktx_size_t offset;
+			KTX_error_code result = ktxTexture_GetImageOffset(pKtxTexture, i, 0, 0, &offset);
+			assert(result == KTX_SUCCESS);
+			VkBufferImageCopy bufferCopyRegion = {};
+			bufferCopyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			bufferCopyRegion.imageSubresource.mipLevel = i;
+			bufferCopyRegion.imageSubresource.baseArrayLayer = 0;
+			bufferCopyRegion.imageSubresource.layerCount = 1;
+			bufferCopyRegion.imageExtent.width = std::max(1u, pKtxTexture->baseWidth >> i);
+			bufferCopyRegion.imageExtent.height = std::max(1u, pKtxTexture->baseHeight >> i);
+			bufferCopyRegion.imageExtent.depth = 1;
+			bufferCopyRegion.bufferOffset = offset;
+			bufferCopyRegions.push_back(bufferCopyRegion);
+		}
+
+		// Create optimal tiled target image
+		VkImageCreateInfo imageCreateInfo = vks::initializers::GenImageCreateInfo();
+		imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
+		imageCreateInfo.format = format;
+		imageCreateInfo.mipLevels = mipLevels;
+		imageCreateInfo.arrayLayers = 1;
+		imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+		imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+		imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		imageCreateInfo.extent = { width,height,1 };
+		imageCreateInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+		VK_CHECK_RESULT(vkCreateImage(device->logicalDevice, &imageCreateInfo, nullptr, &image));
+
+		vkGetImageMemoryRequirements(device->logicalDevice, image, &memReqs);
+		memAllocInfo.allocationSize = memReqs.size;
+		memAllocInfo.memoryTypeIndex = device->GetMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+		VK_CHECK_RESULT(vkAllocateMemory(device->logicalDevice, &memAllocInfo, nullptr, &deviceMemory));
+		VK_CHECK_RESULT(vkBindImageMemory(device->logicalDevice, image, deviceMemory, 0));
+
+		VkImageSubresourceRange subresourceRange = {};
+		subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		subresourceRange.baseMipLevel = 0;
+		subresourceRange.levelCount = mipLevels;
+		subresourceRange.layerCount = 1;
+
+		vks::tools::setImageLayout(copyCmd, image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, subresourceRange);
+		vkCmdCopyBufferToImage(copyCmd, stagingBuffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, static_cast<uint32_t>(bufferCopyRegions.size()), bufferCopyRegions.data());
+		vks::tools::setImageLayout(copyCmd, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, subresourceRange);
+
+		device->FlushCommandBuffer(copyCmd, copyQueue);
+		this->imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+		vkFreeMemory(device->logicalDevice, stagingMemory, nullptr);
+		vkDestroyBuffer(device->logicalDevice, stagingBuffer, nullptr);
+
+		ktxTexture_Destroy(pKtxTexture);
 	}//if_else isKtx
 
 	VkSamplerCreateInfo samplerInfo{};
@@ -579,8 +578,7 @@ void vkglTF::Node::update()
 		if (skin)
 		{
 			mesh->uniformBlock.matrix = m;
-
-			//Update join matrices
+			// Update join matrices
 			glm::mat4 inverseTransform = glm::inverse(m);
 			for (size_t i = 0;i<skin->joints.size();++i)
 			{
@@ -948,7 +946,7 @@ void vkglTF::Model::loadNode(vkglTF::Node * parent, const tinygltf::Node & node,
 					bufferTexCoords = reinterpret_cast<const float*>(&(model.buffers[uvView.buffer].data[uvAccessor.byteOffset + uvView.byteOffset]));
 				}
 
-				if (primitive.attributes.find("COLOR_0")!=primitive.attributes.end())
+				if (primitive.attributes.find("COLOR_0") != primitive.attributes.end())
 				{
 					const tinygltf::Accessor& colorAccessor = model.accessors[primitive.attributes.find("COLOR_0")->second];
 					const tinygltf::BufferView& colorView = model.bufferViews[colorAccessor.bufferView];
@@ -957,7 +955,7 @@ void vkglTF::Model::loadNode(vkglTF::Node * parent, const tinygltf::Node & node,
 					bufferColors = reinterpret_cast<const float*>(&(model.buffers[colorView.buffer].data[colorAccessor.byteOffset + colorView.byteOffset]));
 				}
 
-				if (primitive.attributes.find("TANGENT")!=primitive.attributes.end())
+				if (primitive.attributes.find("TANGENT") != primitive.attributes.end())
 				{
 					const tinygltf::Accessor &tangentAccessor = model.accessors[primitive.attributes.find("TANGENT")->second];
 					const tinygltf::BufferView& tangentView = model.bufferViews[tangentAccessor.bufferView];
@@ -1127,6 +1125,7 @@ void vkglTF::Model::loadImages(tinygltf::Model & gltfModel, vks::VulkanDevice * 
 	{
 		vkglTF::Texture texture;
 		texture.fromglTfImage(image, path, device, transferQueue);
+		texture.index = static_cast<uint32_t>(textures.size());
 		textures.push_back(texture);
 	}
 	// Create an empty texture to be used for empty material images
@@ -1336,7 +1335,7 @@ void vkglTF::Model::loadAnimations(tinygltf::Model & gltfModel)
 	}//for gltfModel.animations
 }
 
-void vkglTF::Model::loadFromFile(std::string filename, vks::VulkanDevice * device, VkQueue transferQueue, uint32_t fileLoadingFlags, float scale)
+void vkglTF::Model::loadFromFile(std::string filename, vks::VulkanDevice *device, VkQueue transferQueue, uint32_t fileLoadingFlags, float scale)
 {
 	tinygltf::Model gltfModel;
 	tinygltf::TinyGLTF gltfContext;
@@ -1364,7 +1363,6 @@ void vkglTF::Model::loadFromFile(std::string filename, vks::VulkanDevice * devic
 	// On Android all assets are packed with the apk in a compressed form, so we need to open them using the asset manager
 	// We let tinygltf handle this, by passing the asset manager of our app
 	tinygltf::asset_manager = androidApp->activity->assetManager;
-	//jingz 这里代码肯定有问题
 #endif
 
 	bool fileLoaded = gltfContext.LoadASCIIFromFile(&gltfModel, &error, &warning, filename);
@@ -1399,7 +1397,7 @@ void vkglTF::Model::loadFromFile(std::string filename, vks::VulkanDevice * devic
 			{
 				node->skin = skins[node->skinIndex];
 			}
-			// initial pose
+			// Initial pose
 			if (node->mesh)
 			{
 				node->update();
@@ -1430,22 +1428,20 @@ void vkglTF::Model::loadFromFile(std::string filename, vks::VulkanDevice * devic
 					for (uint32_t i = 0; i < primitive->vertexCount; ++i)
 					{
 						Vertex& vertex = vertexBuffer[primitive->firstVertex + i];
-
-						// Pre-transform vertex position by node-hierachy
+						// Pre-transform vertex positions by node-hierarchy
 						if (preTransform)
-						{
-							vertex.pos = glm::vec3(localMatrix*glm::vec4(vertex.pos, 1.0f));
-							vertex.normal = glm::normalize(glm::mat3(localMatrix)*vertex.normal);
+                        {
+							vertex.pos = glm::vec3(localMatrix * glm::vec4(vertex.pos, 1.0f));
+							vertex.normal = glm::normalize(glm::mat3(localMatrix) * vertex.normal);
 						}
 
 						// Flip Y-Axis of vertex positions
 						if (flipY)
-						{
+                        {
 							vertex.pos.y *= -1.0f;
 							vertex.normal.y *= -1.0f;
 						}
-
-						// Pre-multiply vertex colors with material base color
+						// Pre-Multiply vertex colors with material base color
 						if (preMultiplyColor)
 						{
 							vertex.color = primitive->material.baseColorFactor*vertex.color;
@@ -1460,8 +1456,8 @@ void vkglTF::Model::loadFromFile(std::string filename, vks::VulkanDevice * devic
 	for (auto extension : gltfModel.extensionsUsed)
 	{
 		if (extension == "KHR_materials_pbrSpecularGlossiness")
-		{
-			std::cout << "Required extension:" << extension;
+        {
+			std::cout << "Required extension: " << extension;
 			metallicRoughnessWorkflow = false;
 		}
 	}//for
@@ -1584,7 +1580,7 @@ void vkglTF::Model::loadFromFile(std::string filename, vks::VulkanDevice * devic
 
 	// Descriptors for per-material images
 	{
-		//Layout is global,so only create if it hasn't already been created created before
+		// Layout is global, so only create if it hasn't already been created before
 		if (descriptorSetLayoutImage == VK_NULL_HANDLE)
 		{
 			std::vector<VkDescriptorSetLayoutBinding>setLayoutBindings{};
@@ -1635,7 +1631,6 @@ void vkglTF::Model::drawNode(Node * node, VkCommandBuffer commandBuffer, uint32_
 			{
 				skip = (material.alphaMode != Material::ALPHA_MODE_OPAQUE);//不是非透明物体pass，就确定跳过
 			}
-
 			if (renderFlags & RenderFlags::RenderAlphaMaskedNodes)
 			{
 				skip = (material.alphaMode != Material::ALPHA_MODE_MASK);//不是mask pass，则确定跳过
@@ -1660,33 +1655,32 @@ void vkglTF::Model::drawNode(Node * node, VkCommandBuffer commandBuffer, uint32_
 
 	for (auto& child:node->children)
 	{
-		drawNode(child, commandBuffer, renderFlags);
+		drawNode(child, commandBuffer, renderFlags, pipelineLayout, bindImageSet);
 	}
 }
 
 void vkglTF::Model::draw(VkCommandBuffer commandBuffer, uint32_t renderFlags, VkPipelineLayout pipelineLayout, uint32_t bindImageSet)
 {
 	if (!buffersBound)
-	{
-		const VkDeviceSize offsets[1] = { 0 };
+    {
+		const VkDeviceSize offsets[1] = {0};
 		vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertices.buffer, offsets);
 		vkCmdBindIndexBuffer(commandBuffer, indices.buffer, 0, VK_INDEX_TYPE_UINT32);
 	}
-
-	for (auto& node:nodes)
-	{
+	for (auto& node : nodes)
+    {
 		drawNode(node, commandBuffer, renderFlags, pipelineLayout, bindImageSet);
 	}
 }
 
-void vkglTF::Model::getNodeDimensions(Node * node, glm::vec3 & min, glm::vec3 & max)
+void vkglTF::Model::getNodeDimensions(Node *node, glm::vec3 &min, glm::vec3 &max)
 {
 	if (node->mesh)
-	{
-		for (Primitive *primitive:node->mesh->primitives)
-		{
-			glm::vec4 locMin = glm::vec4(primitive->dimensions.min, 1.0f)*node->getMatrix();
-			glm::vec4 locMax = glm::vec4(primitive->dimensions.max, 1.0f)*node->getMatrix();
+    {
+		for (Primitive *primitive : node->mesh->primitives)
+        {
+			glm::vec4 locMin = glm::vec4(primitive->dimensions.min, 1.0f) * node->getMatrix();
+			glm::vec4 locMax = glm::vec4(primitive->dimensions.max, 1.0f) * node->getMatrix();
 			if (locMin.x < min.x) { min.x = locMin.x; }
 			if (locMin.y < min.y) { min.y = locMin.y; }
 			if (locMin.z < min.z) { min.z = locMin.z; }
@@ -1696,8 +1690,8 @@ void vkglTF::Model::getNodeDimensions(Node * node, glm::vec3 & min, glm::vec3 & 
 		}
 	}//if node->mesh
 
-	for (auto child:node->children)
-	{
+	for (auto child : node->children)
+    {
 		getNodeDimensions(child, min, max);
 	}
 }
@@ -1706,43 +1700,40 @@ void vkglTF::Model::getSceneDimensions()
 {
 	dimensions.min = glm::vec3(FLT_MAX);
 	dimensions.max = glm::vec3(-FLT_MAX);
-	for (auto node:nodes)
-	{
+	for (auto node : nodes)
+    {
 		getNodeDimensions(node, dimensions.min, dimensions.max);
 	}
 
 	dimensions.size = dimensions.max - dimensions.min;
 	dimensions.center = (dimensions.min + dimensions.max) / 2.0f;
 	dimensions.radius = glm::distance(dimensions.min, dimensions.max) / 2.0f;
-
 }
 
 void vkglTF::Model::updateAnimation(uint32_t index, float time)
 {
-	if (index>static_cast<uint32_t>(animations.size()-1))
-	{
-		std::cout << "No animation with index" << index << std::endl;
+	if (index > static_cast<uint32_t>(animations.size()) - 1) {
+		std::cout << "No animation with index " << index << std::endl;
 		return;
 	}
-
-	Animation& animation = animations[index];
+	Animation &animation = animations[index];
 
 	bool updated = false;
-	for (auto& channel:animation.channels)
-	{
+	for (auto& channel : animation.channels)
+    {
 		vkglTF::AnimationSampler& sampler = animation.samplers[channel.samplerIndex];
-		if (sampler.inputs.size() > sampler.outputsVec4.size()){
+		if (sampler.inputs.size() > sampler.outputsVec4.size())
+        {
 			continue;
 		}
 
-		for (auto i = 0;i<sampler.inputs.size()-1;++i)
-		{
-			if ((time >= sampler.inputs[i]) && (time<= sampler.inputs[i+1]))
-			{
+		for (auto i = 0; i < sampler.inputs.size() - 1; i++)
+        {
+			if ((time >= sampler.inputs[i]) && (time <= sampler.inputs[i + 1]))
+            {
 				float u = std::max(0.0f, time - sampler.inputs[i]) / (sampler.inputs[i + 1] - sampler.inputs[i]);
-
-				if (u<1.0f)
-				{
+				if (u <= 1.0f)
+                {
 					switch (channel.path)
 					{
 					case vkglTF::AnimationChannel::PathType::TRANSLATION:
@@ -1774,7 +1765,7 @@ void vkglTF::Model::updateAnimation(uint32_t index, float time)
 						q2.w = sampler.outputsVec4[i + 1].w;
 						channel.node->rotation = glm::normalize(glm::slerp(q1, q2, u));
                         break;
-					}
+					}// ROTATION
 
 					default:
 						break;
@@ -1782,7 +1773,6 @@ void vkglTF::Model::updateAnimation(uint32_t index, float time)
 
 					updated = true;
 				}//u
-
 			}//if time
 		}//for i
 	}//for channel
@@ -1796,6 +1786,9 @@ void vkglTF::Model::updateAnimation(uint32_t index, float time)
 	}//if updated
 }
 
+/*
+	Helper functions
+*/
 vkglTF::Node * vkglTF::Model::findNode(Node * parent, uint32_t index)
 {
 	Node* nodeFound = nullptr;
@@ -1812,11 +1805,10 @@ vkglTF::Node * vkglTF::Model::findNode(Node * parent, uint32_t index)
 			break;
 		}
 	}
-
 	return nodeFound;
 }
 
-vkglTF::Node * vkglTF::Model::nodeFromIndex(int32_t index)
+vkglTF::Node* vkglTF::Model::nodeFromIndex(uint32_t index)
 {
 	Node* nodeFound = nullptr;
 	for (auto &node:nodes)

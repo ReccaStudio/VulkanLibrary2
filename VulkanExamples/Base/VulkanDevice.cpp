@@ -76,6 +76,17 @@ namespace vks
 
 	}
 
+	/**
+	* Get the index of a memory type that has all the requested property bits set
+	*
+	* @param typeBits Bit mask with bits set for each memory type supported by the resource to request for (from VkMemoryRequirements)
+	* @param properties Bit mask of properties for the memory type to request
+	* @param (Optional) memTypeFound Pointer to a bool that is set to true if a matching memory type has been found
+	* 
+	* @return Index of the requested memory type
+	*
+	* @throw Throws an exception if memTypeFound is null and no memory type could be found that supports the requested properties
+	*/
 	uint32_t VulkanDevice::GetMemoryType(uint32_t typeBits, VkMemoryPropertyFlags propertyFlags, VkBool32 * memTypeFound) const
 	{
 		for (uint32_t i =0;i<memoryProperties.memoryTypeCount;++i)
@@ -120,7 +131,7 @@ namespace vks
 	{
 		// Dedicated queue for compute
 		// Try to find a queue family index that supports compute but not graphics
-		if (queueFlags & VK_QUEUE_COMPUTE_BIT)
+		if ((queueFlags & VK_QUEUE_COMPUTE_BIT) == queueFlags)
 		{
 			for (uint32_t i = 0;i<static_cast<uint32_t>(queueFamilyProperties.size());i++)
 			{
@@ -484,9 +495,9 @@ namespace vks
 	*
 	* @return A handle to the allocated command buffer
 	*/
-	VkCommandBuffer VulkanDevice::CreateCommandBuffer(VkCommandBufferLevel level, VkCommandPool pool, bool begin)
+	VkCommandBuffer VulkanDevice::CreateCommandBuffer(VkCommandBufferLevel level, VkCommandPool curCommandPool, bool begin)
 	{
-		VkCommandBufferAllocateInfo cmdBufferAllocInfo = vks::initializers::GenCommandBufferAllocateInfo(commandPool, level, 1);
+		VkCommandBufferAllocateInfo cmdBufferAllocInfo = vks::initializers::GenCommandBufferAllocateInfo(curCommandPool, level, 1);
 		VkCommandBuffer cmdBuffer;
 		VK_CHECK_RESULT(vkAllocateCommandBuffers(logicalDevice, &cmdBufferAllocInfo, &cmdBuffer));
 

@@ -168,7 +168,6 @@ namespace vkglTF
 
 		Mesh(vks::VulkanDevice* device, glm::mat4 matrix);
 		~Mesh();
-
 	};//mesh
 
 	struct Skin
@@ -179,18 +178,17 @@ namespace vkglTF
 		std::vector<Node*> joints;
 	};
 
-
 	/*
-	glTF node
+		glTF node
 	*/
 	struct Node
 	{
 		Node* parent;
 		uint32_t index;
-		std::vector<Node*>children;
+		std::vector<Node*> children;
 		glm::mat4 matrix;
 		std::string name;
-		Mesh*mesh;
+		Mesh* mesh;
 		Skin* skin;
 		int32_t skinIndex = -1;
 		glm::vec3 translation{};
@@ -382,7 +380,7 @@ namespace vkglTF
 		
 		Node*findNode(Node* parent, uint32_t index);
 
-		Node* nodeFromIndex(int32_t index);
+		Node* nodeFromIndex(uint32_t index);
 		
 		void prepareNodeDescriptor(vkglTF::Node* node, VkDescriptorSetLayout descriptorSetLayout);
 

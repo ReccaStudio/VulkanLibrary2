@@ -530,21 +530,21 @@ int main(const int argc, const char *argv[])													    \
 #elif (defined(VK_USE_PLATFORM_IOS_MVK) || defined(VK_USE_PLATFORM_MACOS_MVK))
 #if defined(VK_EXAMPLE_XCODE_GENERATED)
 #define VULKAN_EXAMPLE_MAIN()																		\
-	VulkanExample *vulkanExample;																		\
-	int main(const int argc, const char *argv[])														\
-	{																									\
-		@autoreleasepool																				\
-		{																								\
-			for (size_t i = 0; i < argc; i++) { VulkanExample::args.push_back(argv[i]); };				\
-			vulkanExample = new VulkanExample();														\
-			vulkanExample->initVulkanSetting();																\
-			vulkanExample->setupWindow(nullptr);														\
-			vulkanExample->prepareForRendering();																	\
-			vulkanExample->renderLoop();																\
-			delete(vulkanExample);																		\
-		}																								\
-		return 0;																						\
-	}
+VulkanExample *vulkanExample;																		\
+int main(const int argc, const char *argv[])														\
+{																									\
+	@autoreleasepool																				\
+	{																								\
+		for (size_t i = 0; i < argc; i++) { VulkanExample::args.push_back(argv[i]); };				\
+		vulkanExample = new VulkanExample();														\
+		vulkanExample->initVulkanSetting();																\
+		vulkanExample->setupWindow(nullptr);														\
+		vulkanExample->prepareForRendering();																	\
+		vulkanExample->renderLoop();																\
+		delete(vulkanExample);																		\
+	}																								\
+	return 0;																						\
+}
 #else
 #define VULKAN_EXAMPLE_MAIN()
 #endif
